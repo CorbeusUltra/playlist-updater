@@ -1,0 +1,21 @@
+# Secret
+token.json
+credentials.json
+playlist_data.json
+.env
+
+# venv
+.venv
+.venv/
+
+# Caches Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+
+# Fichiers système macOS
+.DS_Store
+
+# Packaging Python
+*.egg-info/
