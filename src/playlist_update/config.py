@@ -45,8 +45,9 @@ def parse_int(value: str | None, var_name: str, minimum: int = 0) -> int:
 
 CHANNEL_ID = os.getenv("CHANNEL_ID")
 PLAYLIST_ID = os.getenv("PLAYLIST_ID")
-SHORTS_MIN_SECONDS = parse_int(os.getenv("SHORTS_MIN_SECONDS"), "SHORTS_MIN_SECONDS", minimum=1)
+SHORTS_MIN_SECONDS = parse_int(os.getenv("SHORTS_MIN_SECONDS"), "SHORTS_MIN_SECONDS", minimum=0)
 DRY_RUN = parse_bool(os.getenv("DRY_RUN"), "DRY_RUN")
+OAUTH_PORT = parse_int(os.getenv("OAUTH_PORT", "0"), "OAUTH_PORT", minimum=0)
 
 if not CHANNEL_ID or not CHANNEL_ID.startswith("UC"):
     raise ValueError("CHANNEL_ID must start with 'UC'")

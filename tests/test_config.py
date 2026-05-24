@@ -46,13 +46,13 @@ def test_parse_int_valid_values(value, minimum, expected):
 
 def test_parse_int_missing_value_raises_explicit_error():
     with pytest.raises(ValueError, match="SHORTS_MIN_SECONDS is required"):
-        parse_int(None, "SHORTS_MIN_SECONDS", minimum=1)
+        parse_int(None, "SHORTS_MIN_SECONDS", minimum=0)
 
 
 @pytest.mark.parametrize("value", ["abc", "1.5", "NaN"])
 def test_parse_int_invalid_format_raises(value):
     with pytest.raises(ValueError, match="SHORTS_MIN_SECONDS must be an integer"):
-        parse_int(value, "SHORTS_MIN_SECONDS", minimum=1)
+        parse_int(value, "SHORTS_MIN_SECONDS", minimum=0)
 
 
 def test_parse_int_below_minimum_raises_explicit_error():

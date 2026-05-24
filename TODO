@@ -1,2 +1,2 @@
-- Ajouter la date de dernière update dans la description de la playlist.
-- Expliquer plus en détail comment récupérer les credentials avec l'API google
+- Ajouter la date de dernière mise à jour dans la description de la playlist via l'API.
+- Ajouter support multi-chaînes / multi-playlists via un fichier de configuration YAML.
