@@ -5,7 +5,7 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import Resource, build
 
-from playlist_update.config import TOKEN_FILE, CREDENTIALS_FILE, OAUTH_PORT
+from playlist_updater.config import TOKEN_FILE, CREDENTIALS_FILE, OAUTH_PORT
 
 # Authentification requirements
 SCOPES = ['https://www.googleapis.com/auth/youtube.force-ssl']

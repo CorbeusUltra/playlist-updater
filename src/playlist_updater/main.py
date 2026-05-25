@@ -6,9 +6,9 @@ from pathlib import Path
 
 
 # Local import
-from playlist_update import auth_manager
-from playlist_update import youtube_service
-from playlist_update.config import PLAYLIST_ID, CHANNEL_ID, DRY_RUN, PLAYLIST_DATA_FILE
+from playlist_updater import auth_manager
+from playlist_updater import youtube_service
+from playlist_updater.config import PLAYLIST_ID, CHANNEL_ID, DRY_RUN, PLAYLIST_DATA_FILE
 
 
 logging.basicConfig(

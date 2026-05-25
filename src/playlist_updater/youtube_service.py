@@ -5,7 +5,7 @@ from datetime import datetime
 from googleapiclient.discovery import Resource
 from googleapiclient.errors import HttpError
 
-from playlist_update.config import SHORTS_MIN_SECONDS
+from playlist_updater.config import SHORTS_MIN_SECONDS
 
 logger = logging.getLogger(__name__)
 
