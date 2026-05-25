@@ -1,6 +1,6 @@
-# playlist_update
+# playlist_updater
 
-[![Tests](https://github.com/CorbeusUltra/playlist_update/actions/workflows/tests.yml/badge.svg)](https://github.com/CorbeusUltra/playlist_update/actions/workflows/tests.yml)
+[![Tests](https://github.com/CorbeusUltra/playlist_updater/actions/workflows/tests.yml/badge.svg)](https://github.com/CorbeusUltra/playlist_updater/actions/workflows/tests.yml)
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![License](https://img.shields.io/github/license/CorbeusUltra/playlist_update)
 
@@ -23,8 +23,8 @@ The script is deliberately quota-friendly: it reads the channel's system `upload
 ## Installation
 
 ```bash
-git clone https://github.com/CorbeusUltra/playlist_update.git
-cd playlist_update
+git clone https://github.com/CorbeusUltra/playlist_updater.git
+cd playlist_updater
 pip install -r requirements.txt
 ```
 
@@ -73,9 +73,9 @@ To verify your setup without modifying the playlist, keep `DRY_RUN=true`.
 ## Project structure
 
 ```
-playlist_update/
+playlist_updater/
 ├── script/run.py               # Entry point
-├── src/playlist_update/
+├── src/playlist_updater/
 │   ├── auth_manager.py         # OAuth 2.0 lifecycle (token generation, refresh)
 │   ├── config.py               # Environment variable parsing and validation
 │   ├── main.py                 # Orchestration logic and local state management

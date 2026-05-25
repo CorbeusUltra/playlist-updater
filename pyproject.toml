@@ -1,5 +1,5 @@
 [project]
-name = "playlist-update"
+name = "playlist-updater"
 version = "0.1.0"
 description = "YouTube playlist update script"
 readme = "README.md"
