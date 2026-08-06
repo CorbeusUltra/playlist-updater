@@ -3,6 +3,7 @@ import json
 import logging
 from datetime import datetime, timezone
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 
 # Local import
@@ -43,6 +44,19 @@ def save_local_state(data: dict, state_file: Path = PLAYLIST_DATA_FILE) -> None:
         json.dump(data, f, ensure_ascii=False, indent=4)
     logging.info(f"[SYSTEM] État local sauvegardé dans {state_file}")
 
+def stamp_playlist_last_updated(youtube, youtube_module=youtube_service) -> None:
+    """Inscrit la date/heure courante (heure de Paris) dans la description de la playlist.
+    Respecte DRY_RUN : ne fait que journaliser la ligne qui serait écrite."""
+    now = datetime.now(ZoneInfo("Europe/Paris"))
+    line = youtube_module.format_last_updated_line(now)
+    if DRY_RUN:
+        logging.info(f"[DRY RUN] Description non modifiée. Ligne prévue : {line}")
+        return
+    if youtube_module.update_playlist_last_updated(youtube, PLAYLIST_ID, now):
+        logging.info(f"[SYSTEM] Description de la playlist mise à jour : {line}")
+    else:
+        logging.error("[SYSTEM] Impossible de mettre à jour la description de la playlist.")
+
 def main(youtube_module=youtube_service, state_file: Path = PLAYLIST_DATA_FILE) -> None:
     # 1. Authentification
     logging.info("--- Initialisation du service YouTube ---")
@@ -82,6 +96,7 @@ def main(youtube_module=youtube_service, state_file: Path = PLAYLIST_DATA_FILE) 
 
     if not new_videos:
         logging.info("[INFO] Aucune nouvelle vidéo détectée. Le système est à jour.")
+        stamp_playlist_last_updated(youtube, youtube_module=youtube_module)
         return
 
     logging.info(f"[DETECT] {len(new_videos)} nouvelles vidéos trouvées !")
@@ -114,6 +129,7 @@ def main(youtube_module=youtube_service, state_file: Path = PLAYLIST_DATA_FILE) 
                 logging.error("   -> [ÉCHEC] Erreur lors de l'ajout.")
 
     # 6. Finalisation
+    stamp_playlist_last_updated(youtube, youtube_module=youtube_module)
     logging.info("=" * 50)
     logging.info(f"Terminé. {count_success} vidéos traitées.")
 

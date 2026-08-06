@@ -9,6 +9,15 @@ from playlist_updater.config import SHORTS_MIN_SECONDS
 
 logger = logging.getLogger(__name__)
 
+# Marqueur de la ligne "dernière mise à jour" insérée dans la description de la playlist.
+# Sert aussi à retrouver l'ancienne ligne pour la remplacer (au lieu de l'empiler) à chaque run.
+LAST_UPDATED_PREFIX = "🔄 Last updated:"
+
+# Noms de mois en anglais, codés en dur pour garantir un rendu anglais quelle que soit la
+# locale de la machine (strftime("%B") dépend de la locale système).
+MONTHS_EN = ["January", "February", "March", "April", "May", "June",
+             "July", "August", "September", "October", "November", "December"]
+
 
 def parse_duration(duration_iso: str | None) -> tuple[str, int]:
     """
@@ -210,4 +219,62 @@ def add_video_to_playlist(youtube: Resource, playlist_id: str, video_id: str) ->
             logger.info(f"[INFO] La vidéo {video_id} est déjà dans la playlist.")
             return True
         logger.error(f"[API ERROR] Échec de l'ajout de la vidéo {video_id} : {e}")
+        return False
+
+def format_last_updated_line(when: datetime) -> str:
+    """
+    Construit la ligne marqueur affichée dans la description de la playlist.
+    Ex: '🔄 Last updated: 5 June 2026 at 14:30 CEST'
+    """
+    base = f"{when.day} {MONTHS_EN[when.month - 1]} {when.year} at {when:%H:%M} {when:%Z}"
+    return f"{LAST_UPDATED_PREFIX} {base}".rstrip()
+
+def strip_last_updated_line(description: str) -> str:
+    """
+    Retire toute ligne marqueur 'dernière mise à jour' d'une description existante.
+    Permet de remplacer la ligne au lieu de l'empiler à chaque exécution.
+    """
+    lines = [line for line in description.splitlines() if not line.startswith(LAST_UPDATED_PREFIX)]
+    return "\n".join(lines).rstrip()
+
+def update_playlist_last_updated(youtube: Resource, playlist_id: str, when: datetime) -> bool:
+    """
+    Met à jour la description de la playlist avec la date de dernière mise à jour.
+    Relit le snippet existant (le titre est obligatoire dans playlists().update) afin de
+    préserver titre et description, puis remplace la ligne marqueur.
+    Coût : 1 unité (list) + 50 unités (update).
+    Retourne True si la mise à jour a réussi.
+    """
+    try:
+        response = youtube.playlists().list(
+            part="snippet",
+            id=playlist_id
+        ).execute()
+
+        items = response.get('items', [])
+        if not items:
+            logger.error(f"[API ERROR] Playlist {playlist_id} introuvable pour mise à jour de la description.")
+            return False
+
+        snippet = items[0]['snippet']
+        title = snippet.get('title', '')
+        old_description = snippet.get('description', '')
+
+        updated_line = format_last_updated_line(when)
+        stripped = strip_last_updated_line(old_description)
+        new_description = f"{stripped}\n\n{updated_line}" if stripped else updated_line
+
+        youtube.playlists().update(
+            part="snippet",
+            body={
+                "id": playlist_id,
+                "snippet": {
+                    "title": title,
+                    "description": new_description
+                }
+            }
+        ).execute()
+        return True
+    except HttpError as e:
+        logger.error(f"[API ERROR] Échec de la mise à jour de la description de la playlist : {e}")
         return False

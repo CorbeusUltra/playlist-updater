@@ -1,6 +1,6 @@
 import pytest
 
-from playlist_update.config import parse_bool, parse_int
+from playlist_updater.config import parse_bool, parse_int
 
 
 @pytest.mark.parametrize(

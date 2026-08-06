@@ -1,18 +1,11 @@
-# playlist_updater
+# Playlist updater
 
-[![Tests](https://github.com/CorbeusUltra/playlist_updater/actions/workflows/tests.yml/badge.svg)](https://github.com/CorbeusUltra/playlist_updater/actions/workflows/tests.yml)
+[![Tests](https://github.com/CorbeusUltra/playlist-updater/actions/workflows/tests.yml/badge.svg)](https://github.com/CorbeusUltra/playlist-updater/actions/workflows/tests.yml)
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue)
-![License](https://img.shields.io/github/license/CorbeusUltra/playlist_update)
+![License](https://img.shields.io/github/license/CorbeusUltra/playlist-updater)
 
 A Python tool that automatically keeps a YouTube playlist in sync with new uploads from a given channel, with an optional duration filter to skip YouTube Shorts.
 
-## How it works
-
-The script authenticates with Google using OAuth 2.0 the first time it runs, then persists the token locally so that all subsequent runs are non-interactive — the browser window only opens once. On the very first execution (bootstrap), the current contents of the target playlist are downloaded and saved into a local JSON file (`data/playlist_data.json`), which becomes the reference point used to detect new uploads on every later run.
-
-From that point on, each run fetches the channel's recent uploads and keeps only the videos published strictly after the most recent video already known locally. Videos shorter than the `SHORTS_MIN_SECONDS` threshold are filtered out — this is the mechanism used to exclude YouTube Shorts — and the remaining new videos are appended to the target playlist in chronological order (oldest first). A `DRY_RUN` mode runs the entire pipeline without actually modifying the playlist, which is the recommended way to verify your configuration before the first real run.
-
-The script is deliberately quota-friendly: it reads the channel's system `uploads` playlist (1 API unit per page) instead of calling `search()` (which costs 100 units per query), and it stops paginating as soon as it encounters a video older than the local reference date.
 
 ## Requirements
 
@@ -20,13 +13,38 @@ The script is deliberately quota-friendly: it reads the channel's system `upload
 - A Google Cloud project with the **YouTube Data API v3** enabled
 - OAuth 2.0 credentials (type: *Desktop app*) downloaded as `credentials.json`
 
+
 ## Installation
 
 ```bash
-git clone https://github.com/CorbeusUltra/playlist_updater.git
-cd playlist_updater
+git clone https://github.com/CorbeusUltra/playlist-updater.git
+cd playlist-updater
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
+
+
+## Configuration
+
+Create a `.env` file at the root of the project with the following variables:
+
+```env
+CHANNEL_ID=UCxxxxxxxxxxxxxxxxxxxxxxxx   # YouTube channel ID (starts with UC)
+PLAYLIST_ID=PLxxxxxxxxxxxxxxxxxxxxxxxx  # Target playlist ID (starts with PL)
+
+# Videos shorter than this duration are excluded. # Set to 0 to keep all videos, including Shorts. SHORTS_MIN_SECONDS=75
+
+# Set to true to preview changes without modifying the playlist.
+DRY_RUN=false
+
+# Port used by the local OAuth callback server.
+# Set to 0 or leave unset to automatically select a free port.
+# Use a fixed port, such as 8080, only if your Google OAuth client requires
+# a redirect URI such as http://localhost:8080.
+OAUTH_PORT=0
+```
+
 
 ## Google API credentials setup
 
@@ -40,25 +58,6 @@ pip install -r requirements.txt
 >
 > **About the redirect URI:** if you created your OAuth client as a **Desktop app**, Google accepts any `http://localhost:<port>` redirect automatically and you can leave `OAUTH_PORT` unset (the script will pick a free port). If your OAuth client is a **Web application**, you must either (a) recreate it as a Desktop app, or (b) declare an explicit authorized redirect URI like `http://localhost:8080` in the Cloud Console and set `OAUTH_PORT=8080` in your `.env` so the script binds to the matching port.
 
-## Configuration
-
-Create a `.env` file at the root of the project with the following variables:
-
-```env
-CHANNEL_ID=UCxxxxxxxxxxxxxxxxxxxxxxxx   # YouTube channel ID (starts with UC)
-PLAYLIST_ID=PLxxxxxxxxxxxxxxxxxxxxxxxx  # Target playlist ID (starts with PL)
-SHORTS_MIN_SECONDS=60                   # Minimum video duration in seconds (0 = keep all videos)
-DRY_RUN=true                            # Set to false to actually modify the playlist
-# Optional — port used by the local OAuth server during the one-time browser flow.
-# Leave unset (default 0) to pick a free port automatically. Set to a fixed port
-# (e.g. 8080) if your OAuth client in Google Cloud Console requires a specific
-# redirect URI like http://localhost:8080.
-# OAUTH_PORT=8080
-```
-
-**How to find the channel and playlist IDs:**
-- **Channel ID:** Go to the channel page on YouTube. The URL contains `/channel/UCxxxxxxx` — copy the `UC...` part. If the channel uses a custom URL, open the page source and search for `"channelId"`.
-- **Playlist ID:** Open the playlist on YouTube. The URL contains `list=PLxxxxxxx` — copy the `PL...` part.
 
 ## Usage
 
@@ -69,6 +68,14 @@ python script/run.py
 On the first run, a browser window will open for OAuth authorization. Subsequent runs are fully non-interactive.
 
 To verify your setup without modifying the playlist, keep `DRY_RUN=true`.
+
+
+## Running the tests
+
+```bash
+.venv/bin/python -m pytest tests/ -v
+```
+
 
 ## Project structure
 
@@ -84,6 +91,22 @@ playlist_updater/
 ├── data/playlist_data.json     # Local state cache (auto-created on first run)
 └── credentials/                # credentials.json and token.json (not versioned)
 ```
+
+
+## How it works
+
+The script authenticates with Google using OAuth 2.0 the first time it runs, then persists the token locally so that all subsequent runs are non-interactive — the browser window only opens once. On the very first execution (bootstrap), the current contents of the target playlist are downloaded and saved into a local JSON file (`data/playlist_data.json`), which becomes the reference point used to detect new uploads on every later run.
+
+From that point on, each run fetches the channel's recent uploads and keeps only the videos published strictly after the most recent video already known locally. Videos shorter than the `SHORTS_MIN_SECONDS` threshold are filtered out — this is the mechanism used to exclude YouTube Shorts — and the remaining new videos are appended to the target playlist in chronological order (oldest first). A `DRY_RUN` mode runs the entire pipeline without actually modifying the playlist, which is the recommended way to verify your configuration before the first real run.
+
+The script is deliberately quota-friendly: it reads the channel's system `uploads` playlist (1 API unit per page) instead of calling `search()` (which costs 100 units per query), and it stops paginating as soon as it encounters a video older than the local reference date.
+
+
+## How to find the channel and playlist IDs:
+
+- **Channel ID:** Go to the channel page on YouTube. The URL contains `/channel/UCxxxxxxx` — copy the `UC...` part. If the channel uses a custom URL, open the page source and search for `"channelId"`.
+- **Playlist ID:** Open the playlist on YouTube. The URL contains `list=PLxxxxxxx` — copy the `PL...` part.
+
 
 ## License
 
